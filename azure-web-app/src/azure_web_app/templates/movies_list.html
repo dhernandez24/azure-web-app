@@ -1,0 +1,51 @@
+
+{% extends "base.html" %}
+
+{% block title %}My Movies{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-3">My Favorite Movies</h1>
+
+<div class="alert alert-info" role="alert">
+    Here are {{ movies | length }} movies I enjoy!
+</div>
+
+<div class="row g-3">
+    {% for movie in movies %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+
+                    <h5 class="card-title">
+                        {{ movie.title }}
+                    </h5>
+
+                    {% if movie.id == 1 %}
+                        <span class="badge text-bg-success">
+                            Top Pick
+                        </span>
+                    {% endif %}
+
+                    <ul class="list-group list-group-flush my-3">
+                        <li class="list-group-item">
+                            {{ movie.Thoughts | truncate(100) }}
+                        </li>
+                    </ul>
+
+                    <a class="btn btn-primary"
+                       href="{{ url_for('movies', movie_id=movie.id) }}">
+                        Read More
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            No movies have been added yet!
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
