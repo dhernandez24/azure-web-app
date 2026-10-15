@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}{{ movie.title }}{% endblock %}
+
+{% block content %}
+
+  <h1>{{ movie.title }}</h1>
+  <p>What I think about it:</p>
+  <div class="spinner-border" role="status">
+  <span class="visually-hidden">Loading...</span>
+</div>
+  <p>{{ movie.Thoughts }}</p>
+
+  <a class="btn btn-secondary" href="{{ url_for('index') }}">Back to all favorites</a>
+  
+  
+{% endblock %}

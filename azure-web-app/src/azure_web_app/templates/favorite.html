@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}{{ favorite.title }}{% endblock %}
+
+{% block content %}
+  <h1>{{ favorite.title }}</h1>
+  <div class="alert alert-primary" role="alert">
+    Make sure to check out my movies as well!
+</div>
+  <p class="lead">{{ favorite.why }}</p>
+  <button type="button" class="btn-close" aria-label="Close"></button>
+
+  
+{% endblock %}
