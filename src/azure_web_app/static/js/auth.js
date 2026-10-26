@@ -56,6 +56,7 @@ function validateUsername(id) {
 
 function validateDisplayName(id) {
 	const displayName = document.getElementById(id);
+
 	// .trim() removes spaces from both ends, so "   " counts as empty.
 	if (displayName.value.trim() === "") {
 		setError(displayName, "Display name cannot be empty.");
@@ -166,13 +167,12 @@ async function submitLoginForm(event) {
 		return;
 	}
 
-	// response.ok is true for status codes 200-299 (we send 201 on success).
 	if (!reply.response.ok) {
 		alert("Login failed: " + reply.result.message);
 		return;
 	}
 
-	alert("Login successful! Welcome, " + reply.result.displayName);
+	alert(reply.result.message);
 	hideModal("loginModal");
 }
 
@@ -210,7 +210,7 @@ function attachEventListeners() {
 	// TODO: Attach submitLoginForm to the login form's "submit" event.
 
 	document.getElementById("loginForm")?.addEventListener("submit", submitLoginForm);
-	
+
 	for (const input of document.querySelectorAll("input")) {
 		input.addEventListener("input", clearValidation);
 	}
