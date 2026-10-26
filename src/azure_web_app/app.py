@@ -33,7 +33,6 @@ def index():
     )
 
 
-
 def movies(movie_id: int):
     for movie in MOVIES:
         if movie["id"] == movie_id:
