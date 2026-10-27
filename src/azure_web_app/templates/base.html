@@ -22,12 +22,15 @@
       <div class="container">
         <a class="navbar-brand" href="{{ url_for('index') }}">CS 188</a>
         <div class="navbar-nav">
+          {% if current_user %}
+          <a class="nav-link" href="{{ url_for('account') }}">My account</a>
+        {% endif %}
           <a class="nav-link" href="{{ url_for('index') }}">Home</a>
       <a class="nav-link" href="{{ url_for('movies_list') }}">Movies</a>
-        </div>
+       
       {% include "components/account_nav.html" %}
       </div>
-      
+     
     </nav>
 
     <main class="container">
@@ -37,6 +40,7 @@
     </main>
     {% include "components/register_modal.html" %}
     {% include "components/login_modal.html" %}
+  
 
     <!-- Copy the Bootstrap JS <script> from your old index.html here -->
     

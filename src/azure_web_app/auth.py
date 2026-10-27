@@ -8,15 +8,22 @@ Notice that there's no SQL in this file. Endpoints decide what should happen;
 the Database class in db.py does the talking to the database.
 """
 
-from flask import Flask, request
+from flask import Flask, make_response, request
 from flask_bcrypt import check_password_hash, generate_password_hash
 from flask_restful import Api, Resource
+
+from azure_web_app.sessions import (
+    clear_session_cookie,
+    set_session_cookie,
+    verify_session_cookie,
+)
 
 from ._constants import (
     BAD_LOGIN_MESSAGE,
     MAX_USERNAME_LENGTH,
     MIN_PASSWORD_LENGTH,
     PASSWORD_PATTERN,
+    SESSION_COOKIE_NAME,
     USERNAME_PATTERN,
 )
 from .db import get_db
@@ -148,10 +155,55 @@ class Login(Resource):
         db.update_last_login(username)
     
         last_login_str = last_login.strftime("%Y-%m-%d %H:%M:%S") if last_login else "never"
-        return {
-            "message": f"Welcome back, {display_name}! Your last login was on {last_login_str}."
-            }, 200
+        message = f"Welcome back, {display_name}! Your last login was on {last_login_str}."
 
+        session_id = db.create_session(user_info.userid)
+        response = make_response({"message": message, "displayName": user_info.display_name}, 200)
+        set_session_cookie(response, session_id)
+        return response
+     
+class Logout(Resource):
+    def post(self):
+        # The browser sends our cookies automatically with every request,
+        # so the JavaScript doesn't have to do anything special.
+        session_id = verify_session_cookie(request.cookies.get(SESSION_COOKIE_NAME))
+        if session_id is not None:
+            get_db().delete_session(session_id)
+
+        # Clear the cookie even if the session was already gone, so the browser
+        # stops sending a cookie that doesn't work anymore.
+        response = make_response({"message": "Logged out"}, 200)
+        clear_session_cookie(response)
+        return response
+    
+
+class LogoutEverywhere(Resource):
+    def post(self):
+        session_id = verify_session_cookie(
+            request.cookies.get(SESSION_COOKIE_NAME)
+        )
+
+        if session_id is None:
+            response = make_response({"message": "Not logged in"}, 401)
+            clear_session_cookie(response)
+            return response
+
+        db = get_db()
+        user_info = db.get_session_user(session_id)
+
+        if user_info is None:
+            response = make_response({"message": "Not logged in"}, 401)
+            clear_session_cookie(response)
+            return response
+
+        db.delete_all_user_sessions(user_info.userid)
+
+        response = make_response(
+            {"message": "Logged out everywhere"},
+            200,
+        )
+        clear_session_cookie(response)
+        return response
 
 def setup_auth(app: Flask) -> None:
     """Register the authentication endpoints with the app. Should be called when first creating the flask app"""
@@ -161,3 +213,8 @@ def setup_auth(app: Flask) -> None:
     api.add_resource(Register, "/register")
     # TODO: Once you implement Login
     api.add_resource(Login, "/login")
+    api.add_resource(Logout, "/logout")
+    api.add_resource(LogoutEverywhere, "/logout-everywhere")
+    
+
+

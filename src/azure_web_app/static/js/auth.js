@@ -7,6 +7,7 @@
 // {1,20} means between 1 and 20 of them.
 // So this matches any string made of 1 to 20 alphanumeric characters.
 const USERNAME_PATTERN = /^[a-zA-Z0-9]{1,20}$/;
+const logoutEverywhereButton = document.getElementById("logout-everywhere");
 
 // \x21-\x7E is the range of ASCII characters from ! to ~ (so no spaces).
 // You can find the full ASCII table at https://ss64.com/ascii.html
@@ -174,9 +175,25 @@ async function submitLoginForm(event) {
 
 	alert(reply.result.message);
 	hideModal("loginModal");
+
+	if (reply.response.ok) {
+		window.location.reload();
+	}
 }
 
+// Runs when the logout button is clicked.
+async function logout() {
+	const reply = await postJson("/logout", {});
+	if (reply === null || !reply.response.ok) {
+		alert("Logout failed. Please try again.");
+		return;
+	}
+	// Go back to the home page. This loads a fresh page, so the navbar is
+	// rendered again without the session cookie.
 
+	window.location.href = "/account";
+
+}
 
 // Remove the green/red validation styling from an input once the user starts
 // typing in it again.
@@ -219,6 +236,8 @@ function attachEventListeners() {
 	for (const modal of document.querySelectorAll(".modal")) {
 		modal.addEventListener("hidden.bs.modal", resetModalForms);
 	}
+	document.getElementById("logoutButton")?.addEventListener("click", logout);
+
 }
 
 // Run attachEventListeners once the page's HTML has loaded. If it has already
@@ -234,3 +253,15 @@ function onReady(callback) {
 
 // The only top-level code in this file. Everything else happens in functions.
 onReady(attachEventListeners);
+
+if (logoutEverywhereButton) {
+  logoutEverywhereButton.addEventListener("click", async () => {
+    const response = await fetch("/logout-everywhere", {
+      method: "POST",
+    });
+
+    if (response.ok) {
+      window.location.href = "/";
+    }
+  });
+}

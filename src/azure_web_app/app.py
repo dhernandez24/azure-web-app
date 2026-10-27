@@ -1,10 +1,11 @@
 from datetime import datetime
 
 from dotenv import find_dotenv, load_dotenv
-from flask import Flask, abort, render_template
+from flask import Flask, abort, g, redirect, render_template, url_for
 
-from azure_web_app import auth, db
+from azure_web_app import auth, db, sessions
 from azure_web_app._constants import SECRET_ENV_FILE
+from azure_web_app.sessions import login_required
 
 FAVORITES = [
     {"id": 1, "title": "Chocolate", "why": "Chocolate makes me happy."},
@@ -18,12 +19,16 @@ MOVIES = [
     {"id": 3, "title": "Interstellar", "Thoughts": "Extremely interesting, amazing sound track and great acting."},
 ]
 
+@login_required
+def account():
+    return render_template("account.html")
 
 def create_app():
     load_dotenv(find_dotenv(SECRET_ENV_FILE))
     app = Flask(__name__)
     db.setup_for_app(app)
     auth.setup_auth(app)
+    sessions.setup_sessions(app)
     setup_routes(app)
     return app
 
@@ -50,6 +55,12 @@ def movies(movie_id: int):
 
     abort(404)
     
+def recommendations():
+    if not g.current_user:
+        return redirect(url_for("index"))
+
+    return render_template("recommendations.html")
+
 
 def movies_list():
     return render_template("movies_list.html", movies=MOVIES)
@@ -67,6 +78,9 @@ def setup_routes(app):
     app.route("/favorites/<int:favorite_id>")(favorite_detail)
     app.route("/movies/<int:movie_id>")(movies)
     app.route("/movies")(movies_list)
+    app.route("/account")(account) 
+    app.route("/recommendations")(recommendations)
+
 
 
 def run_app(debug: bool = True) -> None:
